@@ -1,0 +1,52 @@
+# 機能をインポート
+import requests # リクエスト機能をインポート
+from bs4 import BeautifulSoup # スクレイピング機能をインポート
+import pandas as pd # スプレッドシートから得たデータをデータフレームに変換する機能をインポートし、省略してpdと呼べるようにas pdを付ける
+import gspread # スプレッドシートのデータを扱うライブラリをインポート
+from google.oauth2.service_account import Credentials # スプレッドシートの認証機能をインポート
+from gspread_dataframe import set_with_dataframe # スプレッドシートのデータとpandasライブラリのデータを紐づける機能をインポート
+import time # 実行待機のための機能をインポート
+import schedule # 定期実行するための機能をインポート
+
+# 認証のために機能役割を決めるアクセス先をscopesに設定
+scopes = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive'
+]
+
+# その役割の許可をもらうAPIキーをservice_account.jsonから読み込み、credentialsに代入
+# 認証キーを使うアクセス先をscopesに代入
+credentials = Credentials.from_service_account_file(
+    'service_account.json',
+    scopes=scopes
+)
+
+# 認証情報を格納しているcredentialsを使って、gspread.authorizeでスプレッドシートの使用許可を取り、その認証結果をgcに代入
+gc = gspread.authorize(credentials)
+
+
+# 使用するスプレッドシートのアクセス先をSP_SHEET_KEYに代入
+# https://docs.google.com/spreadsheets/d/「ここの部分がSP_SHEET_KEYに代入される」
+SP_SHEET_KEY = '1dupSZIKNLXmEdAdyJCiu7qJ4vs27UJ4w2u81NJoZ1Ec'    #Beer_money（公開）へのリンク　https://docs.google.com/spreadsheets/d/1dupSZIKNLXmEdAdyJCiu7qJ4vs27UJ4w2u81NJoZ1Ec/edit#gid=0
+
+# 開きたいスプレッドシートを認証結果を格納したgcを使ってgc.open_by_keyで開く
+sh = gc.open_by_key(SP_SHEET_KEY)
+
+# 参照するシート名をSP_SHEETに代入
+SP_SHEET = 'drink_data'
+
+# gc.open_by_keyで開いたスプレッドシートのsampleシートをsh.worksheet(SP_SHEET)で情報を得て、worksheetに代入する
+worksheet = sh.worksheet(SP_SHEET)
+
+data = worksheet.get_all_values() # スプレッドシートにある既存のデータをdataに代入
+
+df_old = pd.DataFrame(data[1:], columns=data[0]) # スプレッドシートにある既存のデータをデータフレームに格納し、df_oldに代入
+
+# 既存のデータdf_oldと区別するためにdfをdf_newとしておきます
+df_new = df # スクレイピングで取得した新しいデータdfをdf_newに代入    #####dfは、現状はない#####
+df_upload = pd.concat([df_old,df_new]) # 既存のdf_oldとdf_newをpd.concatで結合
+df_upload.reset_index(drop=True,inplace=True)
+
+# シートにアクセス準備が出来たので、set_with_dataframe(どこに,どのデータ,データフレームで自動生成されるindex数字を含むかどうか)
+# を使ってシートにデータフレームのデータを書き込みます。
+set_with_dataframe(sh.worksheet("drink_data"), df_upload, include_index=False)
