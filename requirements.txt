@@ -4,7 +4,4 @@ os
 re
 pandas
 datetime
-requests.adapters
-requests.packages.urllib3.util.retry
-matplotlib.pyplot
-matplotlib.dates
+matplotlib
