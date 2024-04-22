@@ -1,10 +1,10 @@
-import streamlit as st
-import requests
-import os
-import re
-import pandas as pd
-from datetime import datetime, timedelta
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+streamlit as st
+requests
+os
+re
+pandas
+datetime
+requests.adapters
+requests.packages.urllib3.util.retry
+matplotlib.pyplot
+matplotlib.dates
